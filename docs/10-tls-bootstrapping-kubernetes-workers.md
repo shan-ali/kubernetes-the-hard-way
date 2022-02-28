@@ -115,7 +115,7 @@ stringData:
   token-secret: f395accd246ae52d
 
   # Expiration. Optional.
-  expiration: 2021-03-10T03:22:11Z
+  expiration: 2030-03-10T03:22:11Z
 
   # Allowed usages.
   usage-bootstrap-authentication: "true"
@@ -238,7 +238,7 @@ apiVersion: v1
 clusters:
 - cluster:
     certificate-authority: /var/lib/kubernetes/ca.crt
-    server: https://172.22.5.30:6443
+    server: https://172.22.5.11:6443
   name: bootstrap
 contexts:
 - context:
@@ -279,6 +279,7 @@ clusterDNS:
   - "10.96.0.10"
 resolvConf: "/run/systemd/resolve/resolv.conf"
 runtimeRequestTimeout: "15m"
+rotateCertificates: true
 EOF
 ```
 
@@ -300,12 +301,8 @@ Requires=docker.service
 ExecStart=/usr/local/bin/kubelet \\
   --bootstrap-kubeconfig="/var/lib/kubelet/bootstrap-kubeconfig" \\
   --config=/var/lib/kubelet/kubelet-config.yaml \\
-  --image-pull-progress-deadline=2m \\
   --kubeconfig=/var/lib/kubelet/kubeconfig \\
   --cert-dir=/var/lib/kubelet/pki/ \\
-  --rotate-certificates=true \\
-  --network-plugin=cni \\
-  --register-node=true \\
   --v=2
 Restart=on-failure
 RestartSec=5
@@ -370,23 +367,29 @@ On `worker-2`:
   sudo systemctl enable kubelet kube-proxy
   sudo systemctl start kubelet kube-proxy
 }
-```
-> Remember to run the above commands on worker node: `worker-2`
-
-
-## Step 9 Approve Server CSR
-
-`controller-1$ kubectl get csr`
 
 ```
-NAME                                                   AGE   REQUESTOR                 CONDITION
-csr-95bv6                                              20s   system:node:worker-2      Pending
+
+
+Reference: https://kubernetes.io/docs/reference/access-authn-authz/certificate-signing-requests/#create-certificatesigningrequest 
+
+## Step 9a Check if CSR is approved
+
+On `controller-1`:
+```
+kubectl get csr --kubeconfig admin.kubeconfig
 ```
 
+```
+NAME        AGE   SIGNERNAME                                    REQUESTOR                 REQUESTEDDURATION   CONDITION
+csr-tr7c2   20m   kubernetes.io/kube-apiserver-client-kubelet   system:bootstrap:07401b   <none>              Approved,Issued
+```
 
-Approve
+## Step 9b Approve if not auto approved
 
-`controller-1$ kubectl certificate approve csr-95bv6`
+```
+kubectl certificate approve csr-tr7c2
+```
 
 Note: In the event your cluster persists for longer than 365 days, you will need to manually approve the replacement CSR.
 
@@ -397,15 +400,15 @@ Reference: https://kubernetes.io/docs/reference/command-line-tools-reference/kub
 List the registered Kubernetes nodes from the master node:
 
 ```
-controller-1$ kubectl get nodes --kubeconfig admin.kubeconfig
+kubectl get nodes --kubeconfig admin.kubeconfig
 ```
 
 > output
 
 ```
-NAME       STATUS   ROLES    AGE   VERSION
-worker-1   NotReady   <none>   93s   v1.13.0
-worker-2   NotReady   <none>   93s   v1.13.0
+NAME       STATUS     ROLES    AGE     VERSION
+worker-1   NotReady   <none>   3d19h   v1.23.4
+worker-2   Ready      <none>   21m     v1.23.4
 ```
 Note: It is OK for the worker node to be in a NotReady state. That is because we haven't configured Networking yet.
 
