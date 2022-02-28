@@ -238,7 +238,7 @@ apiVersion: v1
 clusters:
 - cluster:
     certificate-authority: /var/lib/kubernetes/ca.crt
-    server: https://172.22.5.11:6443
+    server: https://172.22.5.30:6443
   name: bootstrap
 contexts:
 - context:
