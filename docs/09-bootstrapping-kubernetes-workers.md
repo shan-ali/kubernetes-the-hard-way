@@ -248,7 +248,25 @@ On `worker-1`:
 }
 ```
 
-> Remember to run the above commands on worker node: `worker-1`
+Check that the kubelet.service and kube-proxy.service services are in a running state (only showing for kubelet.service below)
+```
+systemctl status kubelet.service
+```
+>output
+```
+ubuntu@worker-1:~$ systemctl status kubelet.service
+● kubelet.service - Kubernetes Kubelet
+     Loaded: loaded (/etc/systemd/system/kubelet.service; enabled; vendor preset: enabled)
+     Active: active (running) since Tue 2022-03-22 15:35:53 EDT; 6min ago
+       Docs: https://github.com/kubernetes/kubernetes
+   Main PID: 1673 (kubelet)
+      Tasks: 12 (limit: 1054)
+     Memory: 34.0M
+     CGroup: /system.slice/kubelet.service
+             └─1673 /usr/local/bin/kubelet --config=/var/lib/kubelet/kubelet-config.yaml --image-pull-progress-deadline=2m --kubeconfig=/var/lib/kubelet/kubeconfig --network-plugin=cni --v=2
+...
+```
+You can do `ctrl+c` to exit the logs
 
 ## Verification
 On `controller-1`:
@@ -262,8 +280,8 @@ kubectl get nodes --kubeconfig admin.kubeconfig
 > output
 
 ```
-NAME       STATUS     ROLES    AGE   VERSION
-worker-1   NotReady   <none>   93s   v1.13.0
+NAME       STATUS     ROLES    AGE     VERSION
+worker-1   NotReady   <none>   9m57s   v1.23.4
 ```
 
 > Note: It is OK for the worker node to be in a NotReady state.
