@@ -40,3 +40,16 @@ Kubernetes The Hard Way guides you through bootstrapping a highly available Kube
 * [Kube API Server to Kubelet Configuration](docs/13-kube-apiserver-to-kubelet.md)
 * [Deploying the DNS Cluster Add-on](docs/14-dns-addon.md)
 * [Smoke Test](docs/15-smoke-test.md)
+
+## Difference to the other Tutorials
+1. Uses Multipass to orchestrate the local virtual machines
+2. Cluster Architecture
+   - 2 Control Plane Nodes
+   - 2 Worker Nodes
+   - 1 Loadbalancer
+3. Configure worker-1 manually and worker-2 using TLS Bootstrapping
+4. Statically assigned IPs on private network
+5. Uses openssl to generate certificates
+6. Uses Calico for pod networking
+7. Uses latest versions for the different components (at the time of making)
+8. Some of the startup arguments for the kubelet have become depreciated and have been moved to kubelet-config.yaml
