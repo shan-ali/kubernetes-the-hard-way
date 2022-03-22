@@ -113,7 +113,9 @@ WantedBy=multi-user.target
 EOF
 ```
 
->note: --kubelet-certificate-authority specifies the CA to verify the kubelet's server certificate (allows API to kubelet communication)
+> Note: --kubelet-certificate-authority specifies the CA to verify the Kubelet's server certificate
+
+Reference: https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/
 
 ### Configure the Kubernetes Controller Manager
 
@@ -152,6 +154,7 @@ RestartSec=5
 WantedBy=multi-user.target
 EOF
 ```
+Reference: https://kubernetes.io/docs/reference/command-line-tools-reference/kube-controller-manager/
 
 ### Configure the Kubernetes Scheduler
 
@@ -182,6 +185,7 @@ RestartSec=5
 WantedBy=multi-user.target
 EOF
 ```
+Reference: https://kubernetes.io/docs/reference/command-line-tools-reference/kube-scheduler/
 
 ### Start the Controller Services
 
