@@ -97,4 +97,9 @@ Name:      kubernetes
 Address 1: 10.96.0.1 kubernetes.default.svc.cluster.local
 ```
 
+## Clean Up
+
+```
+kubectl delete pod busybox --force
+```
 Next: [Smoke Test](15-smoke-test.md)
