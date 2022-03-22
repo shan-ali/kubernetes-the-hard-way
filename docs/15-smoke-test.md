@@ -146,5 +146,3 @@ kubectl exec -ti $POD_NAME -- nginx -v
 ```
 nginx version: nginx/1.15.9
 ```
-
-Next: [End to End Tests](16-e2e-tests.md)
