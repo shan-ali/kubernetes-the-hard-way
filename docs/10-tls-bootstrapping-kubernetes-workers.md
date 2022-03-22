@@ -413,7 +413,7 @@ csr-zmq8l   7s    kubernetes.io/kubelet-serving                 system:node:work
 ```
 
 - csr-762pw is the kubelet client certificate (used to connect to the API Server)
-- csr-zmq8l is the kubelet serving certificate (Used to allow connections from the API Server)
+- csr-zmq8l is the kubelet serving certificate (used to allow connections from the API Server)
 
 ## Step 9b: Approve the Serving Certificate
 
