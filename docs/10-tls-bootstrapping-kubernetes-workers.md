@@ -418,7 +418,7 @@ csr-zmq8l   7s    kubernetes.io/kubelet-serving                 system:node:work
 ## Step 9b: Approve the Serving Certificate
 
 ```
-kubectl certificate approve csr-zmq8l
+kubectl certificate approve csr-zmq8l --kubeconfig admin.kubeconfig
 ```
 
 Note: In the event your cluster persists for longer than 365 days, you will need to manually approve the replacement CSR.
