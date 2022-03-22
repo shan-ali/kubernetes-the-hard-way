@@ -24,3 +24,5 @@ multipass version
 multipass   1.8.0+win
 multipassd  1.8.0+win
 ```
+
+Next: [Compute Resources](02-compute-resources.md)
