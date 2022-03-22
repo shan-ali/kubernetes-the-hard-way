@@ -94,4 +94,4 @@ multipass delete --all
 multipass purge
 ```
 
-[Client Tools](03-client-tools.md)
+Next: [Client Tools](03-client-tools.md)
