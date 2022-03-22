@@ -41,7 +41,7 @@ Kubernetes The Hard Way guides you through bootstrapping a highly available Kube
 * [Deploying the DNS Cluster Add-on](docs/14-dns-addon.md)
 * [Smoke Test](docs/15-smoke-test.md)
 
-## Difference to the other Tutorials
+## Difference to the Other Tutorials
 1. Uses Multipass to orchestrate the local virtual machines
 2. Cluster Architecture
    - 2 Control Plane Nodes
