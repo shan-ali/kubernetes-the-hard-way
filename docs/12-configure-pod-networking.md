@@ -1,44 +1,55 @@
 # Provisioning Pod Network
 
-We chose to use CNI - [weave](https://www.weave.works/docs/net/latest/kubernetes/kube-addon/) as our networking option.
+We chose to use CNI - [calico](https://projectcalico.docs.tigera.io/about/about-calico) as our networking option.
 
-### Install CNI plugins
-
-Download the CNI Plugins required for weave on each of the worker nodes - `worker-1` and `worker-2`
-
-`wget https://github.com/containernetworking/plugins/releases/download/v0.7.5/cni-plugins-amd64-v0.7.5.tgz`
-
-Extract it to /opt/cni/bin directory
-
-`sudo tar -xzvf cni-plugins-amd64-v0.7.5.tgz  --directory /opt/cni/bin/`
-
-Reference: https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/#cni
-
-### Deploy Weave Network
-
-Deploy weave network. Run only once on the `master` node.
+We will be following the official documentation for installing calico [on-premises deployments](https://projectcalico.docs.tigera.io/getting-started/kubernetes/self-managed-onprem/onpremises)
 
 
-`kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"`
+## Deploy Calico Network
 
-Weave uses POD CIDR of `10.32.0.0/12` by default.
+on `controller-1`
+
+Download the Calico networking manifest for the Kubernetes API datastore.
+```
+curl https://projectcalico.docs.tigera.io/archive/v3.22/manifests/calico.yaml -O
+```
+
+If you are using pod CIDR `192.168.0.0/16`, skip to the next step. If you are using a different pod CIDR with kubeadm, no changes are required - Calico will automatically detect the CIDR based on the running configuration. For other platforms, make sure you uncomment the `CALICO_IPV4POOL_CIDR` variable in the manifest and set it to the same value as your chosen pod CIDR.
+
+For our purposes we will change the pod CIDR to `10.142.0.0/24`
+
+```
+vim calico.yaml
+```
+
+Change the configuration to look like the following
+
+```
+            - name: CALICO_IPV4POOL_CIDR
+              value: "10.142.0.0/24"
+```
+
+Apply the manifest using the following command.
+
+```
+kubectl apply -f calico.yaml
+```
 
 ## Verification
 
-List the registered Kubernetes nodes from the master node:
+List the registered Kubernetes nodes from the `controller-1` node:
 
 ```
-controller-1$ kubectl get pods -n kube-system
+kubectl get pods -n kube-system -o wide
 ```
 
 > output
 
 ```
-NAME              READY   STATUS    RESTARTS   AGE
-weave-net-58j2j   2/2     Running   0          89s
-weave-net-rr5dk   2/2     Running   0          89s
+NAME                                       READY   STATUS    RESTARTS   AGE   IP            NODE       NOMINATED NODE   READINESS GATES
+calico-kube-controllers-56fcbf9d6b-v6hx5   1/1     Running   0          17m   10.142.0.65   worker-1   <none>           <none>
+calico-node-647l2                          1/1     Running   0          17m   172.22.5.21   worker-1   <none>           <none>
+calico-node-mn7fb                          1/1     Running   0          17m   172.22.5.22   worker-2   <none>           <none>
 ```
-
-Reference: https://kubernetes.io/docs/tasks/administer-cluster/network-policy-provider/weave-network-policy/#install-the-weave-net-addon
 
 Next: [Kube API Server to Kubelet Connectivity](13-kube-apiserver-to-kubelet.md)

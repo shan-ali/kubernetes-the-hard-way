@@ -43,7 +43,7 @@ So let's get started!
 
 Copy the ca certificate to the worker node:
 
-On controller-1:
+On `controller-1`:
 ```
 scp ca.crt worker-2:~/
 ```
@@ -93,7 +93,7 @@ For the workers(kubelet) to access the Certificates API, they need to authentica
 
 Bootstrap Tokens take the form of a 6 character token id followed by 16 character token secret separated by a dot. Eg: abcdef.0123456789abcdef. More formally, they must match the regular expression [a-z0-9]{6}\.[a-z0-9]{16}
 
-The following steps will be done on `controller-1`
+On `controller-1`
 
 ```
 cat > bootstrap-token-07401b.yaml <<EOF
@@ -142,6 +142,8 @@ Reference: https://kubernetes.io/docs/reference/access-authn-authz/bootstrap-tok
 
 Next we associate the group we created before to the system:node-bootstrapper ClusterRole. This ClusterRole gives the group enough permissions to bootstrap the kubelet
 
+On `controller-1`
+
 ```
 cat > csrs-for-bootstrapping.yaml <<EOF
 # enable bootstrapping nodes to create CSR
@@ -161,11 +163,13 @@ EOF
 
 
 kubectl create -f csrs-for-bootstrapping.yaml --kubeconfig admin.kubeconfig
-
 ```
 Reference: https://kubernetes.io/docs/reference/command-line-tools-reference/kubelet-tls-bootstrapping/#authorize-kubelet-to-create-csr
 
 ## Step 3 Authorize controller manager to approve CSR
+
+On `controller-1`
+
 ```
 cat > auto-approve-csrs-for-group.yaml <<EOF
 # Approve all CSRs for the group "system:bootstrappers"
@@ -191,6 +195,8 @@ Reference: https://kubernetes.io/docs/reference/command-line-tools-reference/kub
 ## Step 3 Authorize workers(kubelets) to Auto Renew Certificates on expiration
 
 We now create the Cluster Role Binding required for the nodes to automatically renew the certificates on expiry. Note that we are NOT using the **system:bootstrappers** group here any more. Since by the renewal period, we believe the node would be bootstrapped and part of the cluster already. All nodes are part of the **system:nodes** group.
+
+On `controller-1`
 
 ```
 cat > auto-approve-renewals-for-nodes.yaml <<EOF
@@ -280,10 +286,14 @@ clusterDNS:
 resolvConf: "/run/systemd/resolve/resolv.conf"
 runtimeRequestTimeout: "15m"
 rotateCertificates: true
+serverTLSBootstrap: true
+registerNode: true
 EOF
 ```
 
-> Note: We are not specifying the certificate details - tlsCertFile and tlsPrivateKeyFile - in this file
+- We are not specifying the certificate details - tlsCertFile and tlsPrivateKeyFile - in this file
+- rotateCertificates - enables `client` certificate rotation. The Kubelet will request a new certificate from the certificates.k8s.io API. This requires an approver to approve the certificate signing requests.
+- serverTLSBootstrap - enables `server` certificate bootstrap. Instead of self signing a serving certificate, the Kubelet will request a certificate from the 'certificates.k8s.io' API. This requires an approver to approve the certificate signing requests (CSR). This is needed to create a certificate with group `system:node` for the Node Authorizer.
 
 ## Step 6 Configure Kubelet Service
 
@@ -299,10 +309,12 @@ Requires=docker.service
 
 [Service]
 ExecStart=/usr/local/bin/kubelet \\
+  --image-pull-progress-deadline=2m \\
   --bootstrap-kubeconfig="/var/lib/kubelet/bootstrap-kubeconfig" \\
   --config=/var/lib/kubelet/kubelet-config.yaml \\
   --kubeconfig=/var/lib/kubelet/kubeconfig \\
   --cert-dir=/var/lib/kubelet/pki/ \\
+  --network-plugin=cni \\
   --v=2
 Restart=on-failure
 RestartSec=5
@@ -315,7 +327,6 @@ EOF
 Things to note here:
 - **bootstrap-kubeconfig**: Location of the bootstrap-kubeconfig file.
 - **cert-dir**: The directory where the generated certificates are stored.
-- **rotate-certificates**: Rotates client certificates when they expire.
 
 ## Step 7 Configure the Kubernetes Proxy
 
@@ -367,13 +378,12 @@ On `worker-2`:
   sudo systemctl enable kubelet kube-proxy
   sudo systemctl start kubelet kube-proxy
 }
-
 ```
 
 
 Reference: https://kubernetes.io/docs/reference/access-authn-authz/certificate-signing-requests/#create-certificatesigningrequest 
 
-## Step 9a Check if CSR is approved
+## Step 9a Check CSRs
 
 On `controller-1`:
 ```
@@ -382,13 +392,17 @@ kubectl get csr --kubeconfig admin.kubeconfig
 
 ```
 NAME        AGE   SIGNERNAME                                    REQUESTOR                 REQUESTEDDURATION   CONDITION
-csr-tr7c2   20m   kubernetes.io/kube-apiserver-client-kubelet   system:bootstrap:07401b   <none>              Approved,Issued
+csr-762pw   8s    kubernetes.io/kube-apiserver-client-kubelet   system:bootstrap:07401b   <none>              Approved,Issued
+csr-zmq8l   7s    kubernetes.io/kubelet-serving                 system:node:worker-2      <none>              Pending
 ```
 
-## Step 9b Approve if not auto approved
+- csr-762pw is the kubelet client certificate (used to connect to the API Server)
+- csr-zmq8l is the kubelet serving certificate (Used to allow connections from the API Server)
+
+## Step 9b Approve the Serving Certificate
 
 ```
-kubectl certificate approve csr-tr7c2
+kubectl certificate approve csr-zmq8l
 ```
 
 Note: In the event your cluster persists for longer than 365 days, you will need to manually approve the replacement CSR.
@@ -407,8 +421,8 @@ kubectl get nodes --kubeconfig admin.kubeconfig
 
 ```
 NAME       STATUS     ROLES    AGE     VERSION
-worker-1   NotReady   <none>   3d19h   v1.23.4
-worker-2   Ready      <none>   21m     v1.23.4
+worker-1   NotReady   <none>   48m     v1.23.4
+worker-2   NotReady   <none>   5m23s   v1.23.4
 ```
 Note: It is OK for the worker node to be in a NotReady state. That is because we haven't configured Networking yet.
 

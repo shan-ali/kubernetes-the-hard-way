@@ -26,7 +26,7 @@ Extract and install the `etcd` server and the `etcdctl` command line utility:
 {
   tar xzvf etcd-v3.5.2-linux-amd64.tar.gz
   sudo mv etcd-v3.5.2-linux-amd64/etcd* /usr/local/bin/
-  #rm -f -R etcd-v3.5.2-linux-amd64.tar.gz etcd-v3.5.2-linux-amd64 
+  rm -f -R etcd-v3.5.2-linux-amd64.tar.gz etcd-v3.5.2-linux-amd64 
 }
 ```
 
@@ -106,7 +106,7 @@ curl -LO https://github.com/etcd-io/etcd/releases/download/v3.5.2/etcd-v3.5.2-li
 
 tar xzvf etcd-v3.5.2-linux-amd64.tar.gz
 sudo mv etcd-v3.5.2-linux-amd64/etcd* /usr/local/bin/
-#rm -f -R etcd-v3.5.2-linux-amd64.tar.gz etcd-v3.5.2-linux-amd64 
+rm -f -R etcd-v3.5.2-linux-amd64.tar.gz etcd-v3.5.2-linux-amd64 
 
 sudo mkdir -p /etc/etcd /var/lib/etcd
 sudo cp ca.crt etcd-server.key etcd-server.crt /etc/etcd/

@@ -17,3 +17,4 @@ runcmd:
   - apt-get update
   - apt-get install -y docker-ce docker-ce-cli containerd.io
   - sudo apt-get install docker-ce=20.10.12 docker-ce-cli=20.10.12 containerd.io
+  - sudo sysctl net.bridge.bridge-nf-call-iptables=1

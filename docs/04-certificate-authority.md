@@ -117,8 +117,6 @@ kube-proxy.crt
 
 Generate the `kube-scheduler` client certificate and private key:
 
-
-
 ```
 openssl genrsa -out kube-scheduler.key 2048
 openssl req -new -key kube-scheduler.key -subj "/CN=system:kube-scheduler" -out kube-scheduler.csr
@@ -152,7 +150,8 @@ subjectAltName = @alt_names
 DNS.1 = kubernetes
 DNS.2 = kubernetes.default
 DNS.3 = kubernetes.default.svc
-DNS.4 = kubernetes.default.svc.cluster.local
+DNS.4 = kubernetes.default.svc.cluster
+DNS.5 = kubernetes.default.svc.cluster.local
 IP.1 = 10.96.0.1
 IP.2 = 127.0.0.1
 IP.3 = 172.22.5.11

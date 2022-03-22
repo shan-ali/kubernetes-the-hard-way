@@ -6,6 +6,8 @@ In this lab you will complete a series of tasks to ensure your Kubernetes cluste
 
 In this section you will verify the ability to [encrypt secret data at rest](https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/#verifying-that-data-is-encrypted).
 
+On `controller-1`
+
 Create a generic secret:
 
 ```

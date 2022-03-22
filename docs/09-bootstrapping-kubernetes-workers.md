@@ -15,9 +15,11 @@ Once this is done, the commands are to be run on first worker instance: `worker-
 
 Kubernetes uses a [special-purpose authorization mode](https://kubernetes.io/docs/admin/authorization/node/) called Node Authorizer, that specifically authorizes API requests made by [Kubelets](https://kubernetes.io/docs/concepts/overview/components/#kubelet). In order to be authorized by the Node Authorizer, Kubelets must use a credential that identifies them as being in the `system:nodes` group, with a username of `system:node:<nodeName>`. In this section you will create a certificate for each Kubernetes worker node that meets the Node Authorizer requirements.
 
+We have already enabled the Node Authorization for the API Server by starting it with `--authorization-mode=Node`
+
 Generate a certificate and private key for one worker node:
 
-On controller-1:
+On `controller-1`:
 
 ```
 cat > openssl-worker-1.cnf <<EOF
@@ -39,6 +41,8 @@ openssl req -new -key worker-1.key -subj "/CN=system:node:worker-1/O=system:node
 openssl x509 -req -in worker-1.csr -CA ca.crt -CAkey ca.key -CAcreateserial  -out worker-1.crt -extensions v3_req -extfile openssl-worker-1.cnf -days 1000
 ```
 
+> note: "/CN=system:node:worker-1/O=system:nodes" is specifying that the kubelet is part of the system:node group which is required. 
+
 Results:
 
 ```
@@ -50,14 +54,14 @@ worker-1.crt
 
 When generating kubeconfig files for Kubelets the client certificate matching the Kubelet's node name must be used. This will ensure Kubelets are properly authorized by the Kubernetes [Node Authorizer](https://kubernetes.io/docs/admin/authorization/node/).
 
-Get the kub-api server load-balancer IP.
+Get the kube-api server load-balancer IP.
 ```
 LOADBALANCER_ADDRESS=172.22.5.30
 ```
 
 Generate a kubeconfig file for the first worker node.
 
-On controller-1:
+On `controller-1`:
 ```
 {
   kubectl config set-cluster kubernetes-the-hard-way \
@@ -88,7 +92,7 @@ worker-1.kubeconfig
 ```
 
 ### Copy certificates, private keys and kubeconfig files to the worker node:
-On controller-1:
+On `controller-1`:
 ```
 scp ca.crt worker-1.crt worker-1.key worker-1.kubeconfig worker-1:~/
 ```
@@ -97,7 +101,7 @@ scp ca.crt worker-1.crt worker-1.key worker-1.kubeconfig worker-1:~/
 
 Going forward all activities are to be done on the `worker-1` node.
 
-On worker-1:
+On `worker-1`:
 ```
 curl -LO https://dl.k8s.io/v1.23.4/bin/linux/amd64/kubelet
 curl -LO https://dl.k8s.io/v1.23.4/bin/linux/amd64/kube-proxy 
@@ -128,7 +132,7 @@ Install the worker binaries:
 ```
 
 ### Configure the Kubelet
-On worker-1:
+On `worker-1`:
 ```
 {
   sudo mv ${HOSTNAME}.key ${HOSTNAME}.crt /var/lib/kubelet/
@@ -143,6 +147,8 @@ Create the `kubelet-config.yaml` configuration file:
 cat <<EOF | sudo tee /var/lib/kubelet/kubelet-config.yaml
 kind: KubeletConfiguration
 apiVersion: kubelet.config.k8s.io/v1beta1
+tlsCertFile: "/var/lib/kubelet/${HOSTNAME}.crt"
+tlsPrivateKeyFile: "/var/lib/kubelet/${HOSTNAME}.key"
 authentication:
   anonymous:
     enabled: false
@@ -157,6 +163,7 @@ clusterDNS:
   - "10.96.0.10"
 resolvConf: "/run/systemd/resolve/resolv.conf"
 runtimeRequestTimeout: "15m"
+registerNode: true
 EOF
 ```
 
@@ -177,10 +184,7 @@ ExecStart=/usr/local/bin/kubelet \\
   --config=/var/lib/kubelet/kubelet-config.yaml \\
   --image-pull-progress-deadline=2m \\
   --kubeconfig=/var/lib/kubelet/kubeconfig \\
-  --tls-cert-file=/var/lib/kubelet/${HOSTNAME}.crt \\
-  --tls-private-key-file=/var/lib/kubelet/${HOSTNAME}.key \\
   --network-plugin=cni \\
-  --register-node=true \\
   --v=2
 Restart=on-failure
 RestartSec=5
@@ -191,7 +195,7 @@ EOF
 ```
 
 ### Configure the Kubernetes Proxy
-On worker-1:
+On `worker-1`:
 ```
 sudo mv kube-proxy.kubeconfig /var/lib/kube-proxy/kubeconfig
 ```
@@ -241,7 +245,7 @@ On worker-1:
 > Remember to run the above commands on worker node: `worker-1`
 
 ## Verification
-On controller-1:
+On `controller-1`:
 
 List the registered Kubernetes nodes from the master node:
 

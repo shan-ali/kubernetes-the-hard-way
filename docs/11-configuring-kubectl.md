@@ -10,6 +10,8 @@ Each kubeconfig requires a Kubernetes API Server to connect to. To support high 
 
 Generate a kubeconfig file suitable for authenticating as the `admin` user:
 
+On `controller-1`
+
 ```
 {
   KUBERNETES_LB_ADDRESS=172.22.5.30

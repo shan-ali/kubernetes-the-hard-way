@@ -113,6 +113,8 @@ WantedBy=multi-user.target
 EOF
 ```
 
+>note: --kubelet-certificate-authority specifies the CA to verify the kubelet's server certificate (allows API to kubelet communication)
+
 ### Configure the Kubernetes Controller Manager
 
 Copy the `kube-controller-manager` kubeconfig into place:
@@ -131,7 +133,7 @@ Documentation=https://github.com/kubernetes/kubernetes
 
 [Service]
 ExecStart=/usr/local/bin/kube-controller-manager \\
-  --address=0.0.0.0 \\
+  --bind-address=0.0.0.0 \\
   --cluster-cidr=172.22.5.0/20 \\
   --cluster-name=kubernetes \\
   --cluster-signing-cert-file=/var/lib/kubernetes/ca.crt \\
@@ -170,7 +172,7 @@ Documentation=https://github.com/kubernetes/kubernetes
 [Service]
 ExecStart=/usr/local/bin/kube-scheduler \\
   --kubeconfig=/var/lib/kubernetes/kube-scheduler.kubeconfig \\
-  --address=127.0.0.1 \\
+  --bind-address=127.0.0.1 \\
   --leader-elect=true \\
   --v=2
 Restart=on-failure
