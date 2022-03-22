@@ -37,7 +37,7 @@ This does the below:
 - All are running the latest Ubuntu LTS (20.04 LTS at the moment)
 - Install's Docker on Worker nodes
 - Runs the below command on all nodes to allow for network forwarding in IP Tables. This is required for kubernetes networking to function correctly.
-  - `sysctl net.bridge.bridge-nf-call-iptables=1`
+  > `sysctl net.bridge.bridge-nf-call-iptables=1`
 - Copies the netplan yaml to each host and set's IP addresses in the range 172.55.5.*
 - Restarts all of the hosts 
 
@@ -47,7 +47,7 @@ cd multipass
 .\run.ps1
 ```
 
-## hosts
+## Hosts
 
 | VM Name      | Purpose       | IP          |
 |--------------|---------------|-------------|
@@ -75,7 +75,7 @@ multipass shell controller-1
 - Ensure you can connect to each of the hosts
 - Ensure the VMs can ping each other
 - Ensure the worker nodes have Docker installed on them
-  > command `sudo docker version`
+  > `sudo docker version`
 
 ## Troubleshooting Tips
 
