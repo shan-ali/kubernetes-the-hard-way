@@ -4,7 +4,7 @@ In this lab you will bootstrap 2 Kubernetes worker nodes. We already have [Docke
 
 We will now install the kubernetes components
 - [kubelet](https://kubernetes.io/docs/admin/kubelet)
-- [kube-proxy](https://kubernetes.io/docs/concepts/cluster-administration/proxies).
+- [kube-proxy](https://kubernetes.io/docs/concepts/cluster-administration/proxies)
 
 ## Prerequisites
 
@@ -15,7 +15,7 @@ Once this is done, the commands are to be run on first worker instance: `worker-
 
 Kubernetes uses a [special-purpose authorization mode](https://kubernetes.io/docs/admin/authorization/node/) called Node Authorizer, that specifically authorizes API requests made by [Kubelets](https://kubernetes.io/docs/concepts/overview/components/#kubelet). In order to be authorized by the Node Authorizer, Kubelets must use a credential that identifies them as being in the `system:nodes` group, with a username of `system:node:<nodeName>`. In this section you will create a certificate for each Kubernetes worker node that meets the Node Authorizer requirements.
 
-We have already enabled the Node Authorization for the API Server by starting it with `--authorization-mode=Node`
+> Note: We have already enabled the Node Authorization for the API Server by starting it with `--authorization-mode=Node`
 
 Generate a certificate and private key for one worker node:
 
@@ -41,7 +41,7 @@ openssl req -new -key worker-1.key -subj "/CN=system:node:worker-1/O=system:node
 openssl x509 -req -in worker-1.csr -CA ca.crt -CAkey ca.key -CAcreateserial  -out worker-1.crt -extensions v3_req -extfile openssl-worker-1.cnf -days 1000
 ```
 
-> note: "/CN=system:node:worker-1/O=system:nodes" is specifying that the kubelet is part of the system:node group which is required. 
+> Note: "/CN=system:node:worker-1/O=system:nodes" is specifying that the kubelet is part of the system:node group which is required. 
 
 Results:
 
@@ -167,7 +167,9 @@ registerNode: true
 EOF
 ```
 
-> The `resolvConf` configuration is used to avoid loops when using CoreDNS for service discovery on systems running `systemd-resolved`.
+> Note: The `resolvConf` configuration is used to avoid loops when using CoreDNS for service discovery on systems running `systemd-resolved`.
+
+Reference: https://kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/
 
 Create the `kubelet.service` systemd unit file:
 
@@ -193,6 +195,7 @@ RestartSec=5
 WantedBy=multi-user.target
 EOF
 ```
+Reference: https://kubernetes.io/docs/reference/command-line-tools-reference/kubelet/
 
 ### Configure the Kubernetes Proxy
 On `worker-1`:
@@ -213,6 +216,8 @@ clusterCIDR: "172.22.5.0/20"
 EOF
 ```
 
+Reference: https://kubernetes.io/docs/reference/config-api/kube-proxy-config.v1alpha1/
+
 Create the `kube-proxy.service` systemd unit file:
 
 ```
@@ -231,9 +236,10 @@ RestartSec=5
 WantedBy=multi-user.target
 EOF
 ```
+Reference: https://kubernetes.io/docs/reference/command-line-tools-reference/kube-proxy/
 
 ### Start the Worker Services
-On worker-1:
+On `worker-1`:
 ```
 {
   sudo systemctl daemon-reload
@@ -262,7 +268,5 @@ worker-1   NotReady   <none>   93s   v1.13.0
 
 > Note: It is OK for the worker node to be in a NotReady state.
   That is because we haven't configured Networking yet.
-
-Optional: At this point you may run the certificate verification script to make sure all certificates are configured correctly. Follow the instructions [here](verify-certificates.md)
 
 Next: [TLS Bootstrapping Kubernetes Workers](10-tls-bootstrapping-kubernetes-workers.md)
